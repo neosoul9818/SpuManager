@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mybatis-spring="http://mybatis.org/schema/mybatis-spring"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring-1.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd">
+
+	<context:component-scan base-package="com.atguigu.service"
+		use-default-filters="false">
+		<context:include-filter type="annotation"
+			expression="org.springframework.stereotype.Service" />
+	</context:component-scan>
+
+	<!--2、配置数据源相关，c3p0 -->
+	<context:property-placeholder location="classpath:db.properties" />
+	
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+	<property name="url" value="${jdbc.url}"></property>
+	<property name="driverClassName" value="${jdbc.driver}"></property>
+	<property name="username" value="${jdbc.username}"></property>
+	<property name="password" value="${jdbc.password}"></property>
+</bean>
+
+	<!--3、JdbcTemplate：Spring提供的数据库操作 数据库层使用MyBatis; Spring要整合MyBatis，相当于Spring要在合适的时机，自动的创建一个sqlSession对象. 
+		SqlSession又是使用SqlSessionFactory创建的。 我们使用sqlSessionFactoryBean，创建sqlSession对象 -->
+	<bean id="sqlSessionFactoryBean" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<!--configLocation：指定mybatis全局配置文件的位置 -->
+		<property name="configLocation" value="classpath:mybatis-config.xml"></property>
+		<!-- 运行环境等的所有信息都能在这里配置 -->
+		<property name="dataSource" ref="dataSource"></property>
+		<property name="mapperLocations" value="classpath:mybatis/*.xml"></property>
+		<!-- <property name="mapperLocations" ></property> -->
+		<!-- 1、将UserDao的实现类自动的加入到ioc容器中 2、如果直接注入有问题 -->
+		<!-- <property name="mapperLocations" value="com.atguigu.dao"></property> -->
+	</bean>
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.atguigu.mapper"></property>
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactoryBean"></property>
+	</bean>
+	<!-- 方式二 -->
+	<!-- <mybatis-spring:scan base-package=""/> -->
+	<!--配置sqlSession：sqlSessionTemplate,用来操作数据库 -->
+	<!--4、配置一个sqlSession：sqlSessionTemplate -->
+	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg name="sqlSessionFactory" ref="sqlSessionFactoryBean"></constructor-arg>
+	</bean>
+
+	<!--5、配置基于Spring‘的事务控制 -->
+	<!--事务管理器 -->
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+
+	<!--6、开启基于注解的事务 -->
+	<tx:annotation-driven transaction-manager="transactionManager" />
+</beans>

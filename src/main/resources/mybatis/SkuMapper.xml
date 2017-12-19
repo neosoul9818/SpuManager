@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.mapper.SkuMapper">
+	<select id="sku_get_spu" resultType="com.atguigu.bean.T_MALL_PRODUCT">
+		
+		SELECT * FROM t_mall_product WHERE flbh1 = #{flbh1} 
+		AND flbh2 = #{flbh2}
+		AND pp_id= #{pp_id}
+	</select>
+	<!-- skuMapper.save_sku(sku);
+		
+		//保存库存sku和属性属性值的关联表,此处需要用到主键返回策略，
+		skuMapper.save_av(sku.getId(),list_av);
+	 -->
+	<insert id="save_sku" parameterType="com.atguigu.bean.T_MALL_SKU" useGeneratedKeys="true"
+	keyColumn="id" keyProperty="id">
+		INSERT INTO t_mall_sku (sku_mch,kc,jg,kcdz,shp_id) VALUES(#{sku_mch},#{kc},#{jg},#{kcdz},#{shp_id});
+	</insert>
+	
+	<insert id="save_av">
+		INSERT INTO t_mall_sku_attr_value (sku_id,shp_id, shxm_id, shxzh_id)
+		VALUES
+		<foreach collection="list_av" item="av" separator=",">
+			(#{sku.id},#{sku.shp_id},
+<!-- 			<if test="av.shxm_id !=null">
+			</if>
+ -->				#{av.shxm_id},
+				#{av.shxzh_id})
+			<!-- <if test="av.shxzh_id !=null">
+			</if> -->
+		</foreach>
+	</insert>
+</mapper>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.mapper.SearchMapper">
+	
+	<select id="select_sku_list_by_spu" resultType="com.atguigu.bean.T_MALL_SKU">
+		SELECT * FROM t_mall_sku WHERE shp_id = #{spu_id}
+	</select>
+	<!-- 通过属性查询sku商品集合是在通过分类编号2查询sku商品集合的基础上，追加sql语句，取多个属性属性值查询到sku商品的id集合的交集 -->
+	<select id="select_sku_list_by_attr" resultMap="select_sku_list_by_class_2_map"
+		parameterType="Map">
+		SELECT sku.id sku_id,spu.id spu_id, tm.id tm_id,spu.*,
+		sku.*, tm.* FROM 
+		t_mall_sku sku,
+		t_mall_product spu,
+		t_mall_tm_class tc,
+		t_mall_trade_mark tm
+		WHERE 
+		sku.shp_id=spu.id AND 
+		spu.flbh1 =tc.flbh1 AND 
+		tc.pp_id = tm.id AND 
+		spu.pp_id = tm.id AND 
+		spu.flbh2 = #{class_2_id}
+		${sql}
+		${order}
+		
+	</select>
+
+	<select id="select_sku_list_by_class_2" resultMap="select_sku_list_by_class_2_map">
+		SELECT sku.id sku_id,spu.id spu_id, tm.id tm_id,spu.*, sku.*, tm.* FROM
+		t_mall_sku sku,
+		t_mall_product spu,
+		t_mall_tm_class tc,
+		t_mall_trade_mark tm
+		WHERE sku.shp_id=spu.id 
+		AND spu.flbh1 = tc.flbh1 
+		AND tc.pp_id = tm.id
+		AND spu.pp_id = tm.id
+		AND spu.flbh2 = #{class_2_id};
+	</select>
+
+	<resultMap type="com.atguigu.bean.OBJECT_T_MALL_SKU" id="select_sku_list_by_class_2_map"
+		autoMapping="true">
+		<id column="sku_id" property="id" />
+		<association property="spu" javaType="com.atguigu.bean.T_MALL_PRODUCT"
+			autoMapping="true">
+			<id column="spu_id" property="id" />
+		</association>
+		<association property="tm" javaType="com.atguigu.bean.T_MALL_TRADE_MARK"
+			autoMapping="true">
+			<id column="tm_id" property="id" />
+		</association>
+
+	</resultMap>
+</mapper>
